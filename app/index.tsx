@@ -50,8 +50,9 @@ export default function HomeScreen() {
 };
 
     const handleLots = () => {
-        Alert.alert('🗺️ Lotes', 'Gestión de lotes próximamente');
-    };
+    // 🚀 CORRECCIÓN DEFINITIVA DE TIPADO: Apuntamos a la ruta completa /index.
+    router.push('/(main)/lots/index'); 
+};
 
     const handleProducts = () => {
         Alert.alert('📦 Productos', 'Catálogo de productos fitosanitarios');
