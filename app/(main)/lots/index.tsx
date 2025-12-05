@@ -44,7 +44,6 @@ export default function LotsScreen() {
     const fetchLotes = async () => {
         try {
             setLoading(true);
-            // Consulta con JOIN: Traemos todos los campos de lotes (*) y los campos 'nombre' y 'empresa' de la tabla 'clientes'
             const { data, error } = await supabase
                 .from("lotes")
                 .select("*, clientes(nombre, empresa)")
@@ -77,7 +76,6 @@ export default function LotsScreen() {
             .replace(/[\u0300-\u036f]/g, '');
     };
 
-    // Filtra por nombre del lote, nombre del cliente o cultivo
     const filteredLotes = lotes.filter((lote: any) => {
         const query = normalizeText(searchQuery);
         const clienteNombre = lote.clientes?.nombre || '';
@@ -89,13 +87,12 @@ export default function LotsScreen() {
     });
 
     const handleLotPress = (lote: Lote) => {
-    // 🚀 ÚLTIMA CORRECCIÓN SIMPLE: Apuntamos al Stack conocido /client-detail/[id]
-    // (Asumiendo que el componente [id].tsx está en client-detail/ como propusimos antes)
-    router.push({
-        pathname: "/client-detail/[id]", 
-        params: { id: lote.id },
-    });
-};
+        // Navegación a la pantalla de edición de lotes (ruta aislada)
+        router.push({
+            pathname: "/lot-detail/[id]",
+            params: { id: lote.id },
+        });
+    };
 
     const renderLote = ({ item }: { item: Lote }) => (
         <TouchableOpacity
@@ -106,7 +103,7 @@ export default function LotsScreen() {
             <View style={styles.loteContent}>
                 <View style={styles.loteMain}>
                     <Text style={styles.loteNombre}>{item.nombre_lote} ({item.superficie_ha.toFixed(2)} ha)</Text>
-                    <Text style={styles.loteCliente}>Cliente: {item.clientes?.nombre || 'N/A'}</Text>
+                    <Text style={styles.loteCliente}>Empresa: {item.clientes?.empresa || 'N/A'}</Text>
                 </View>
                 <View style={styles.loteDetails}>
                     {item.cultivo && (
@@ -203,7 +200,8 @@ export default function LotsScreen() {
             {/* Botón Flotante */}
             <TouchableOpacity
                 style={styles.fab}
-                onPress={() => router.push("/(main)/lots/new")}
+                // 🚀 CORRECCIÓN DEL FAB: Usamos la ruta lógica más corta para 'new'.
+                onPress={() => router.push("/lot-create/new")}
                 activeOpacity={0.8}
             >
                 <Text style={styles.fabText}>+</Text>

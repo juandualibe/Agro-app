@@ -1,3 +1,5 @@
+// app/(main)/clients/list.tsx
+
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -12,7 +14,6 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-// La ruta de importación de supabase fue corregida a '../../../lib/supabase' 
 import { supabase } from "../../../lib/supabase";
 
 interface Cliente {
@@ -50,8 +51,6 @@ export default function ClientsScreen() {
                 Alert.alert("Error", "No se pudieron cargar los clientes");
             } else {
                 setClientes(data || []);
-                // El log confirma que los datos se cargan correctamente, la falla es de renderizado/enrutamiento.
-                console.log('Clientes cargados:', data); 
             }
         } catch (err) {
             console.error("Error:", err);
@@ -70,7 +69,7 @@ export default function ClientsScreen() {
         return text
             .toLowerCase()
             .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, ''); // Elimina acentos
+            .replace(/[\u0300-\u036f]/g, '');
     };
 
     const filteredClientes = clientes.filter((cliente) => {
@@ -83,10 +82,12 @@ export default function ClientsScreen() {
     });
 
     const handleClientPress = (cliente: Cliente) => {
-    // 🚀 NAVEGACIÓN A LA RUTA AISLADA:
-    // Apuntamos al nuevo stack (client-detail) y pasamos el ID.
-    router.push(`/client-detail/${cliente.id}`); 
-};
+        // Navegación a la ruta de edición aislada
+        router.push({
+            pathname: "/client-detail/[id]", 
+            params: { id: cliente.id },
+        });
+    };
 
     const renderCliente = ({ item }: { item: Cliente }) => (
         <TouchableOpacity
@@ -133,8 +134,13 @@ export default function ClientsScreen() {
         <View style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                {/* 🚀 ESPACIADOR: Reemplaza el botón 'Atrás' eliminado para centrar el título */}
-                <View style={styles.spacer} /> 
+                {/* 🚀 BOTÓN DE ATRÁS RESTAURADO */}
+                <TouchableOpacity
+                  style={styles.backButton}
+                  onPress={() => router.back()}
+                >
+                  <Text style={styles.backButtonText}>‹ Atrás</Text>
+                </TouchableOpacity>
                 <Text style={styles.headerTitle}>Clientes</Text>
                 <View style={styles.headerRight}>
                     <Text style={styles.clientCount}>{clientes.length}</Text>
@@ -198,8 +204,7 @@ export default function ClientsScreen() {
             {/* Botón Flotante */}
             <TouchableOpacity
                 style={styles.fab}
-                // Usamos la ruta lógica para 'new' que es la más robusta
-                onPress={() => router.push("/clients/new")} 
+                onPress={() => router.push("/clients/new")}
                 activeOpacity={0.8}
             >
                 <Text style={styles.fabText}>+</Text>
@@ -240,13 +245,11 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 4,
     },
-    // Espaciador requerido en el Header:
-    spacer: { 
-        width: 40,
-        height: 40, 
-    },
+    // 🛑 Spacer eliminado (usamos backButton en su lugar)
     backButton: {
         padding: 8,
+        // Usamos minWidth para mantener el título centrado
+        minWidth: 40, 
     },
     backButtonText: {
         color: "white",

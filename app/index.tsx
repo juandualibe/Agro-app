@@ -50,8 +50,8 @@ export default function HomeScreen() {
 };
 
     const handleLots = () => {
-    // 🚀 CORRECCIÓN DEFINITIVA DE TIPADO: Apuntamos a la ruta completa /index.
-    router.push('/(main)/lots/index'); 
+    // 🚀 CORRECCIÓN DEFINITIVA: Apuntamos solo a la carpeta del grupo (omitiendo /index).
+    router.push('/(main)/lots'); 
 };
 
     const handleProducts = () => {
