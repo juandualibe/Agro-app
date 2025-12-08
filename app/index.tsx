@@ -36,11 +36,12 @@ export default function HomeScreen() {
     };
 
     const handleNewRecipe = () => {
-        Alert.alert('🎉 Nueva Receta', '¡Proximamente podrás crear recetas!');
+        // ⚠️ FIJATE QUE DIGA "recipes", NO "lot-create" ni "lots"
+        router.push('/(main)/recipes/new');
     };
-
     const handleViewRecipes = () => {
-        Alert.alert('📋 Ver Recetas', 'Aquí verás el historial de recetas');
+        // Navegamos a la carpeta recipes, archivo list.tsx (que crearemos ahora)
+        router.push('/(main)/recipes/list');
     };
 
     const handleClients = () => {
@@ -55,8 +56,8 @@ export default function HomeScreen() {
 };
 
     const handleProducts = () => {
-        Alert.alert('📦 Productos', 'Catálogo de productos fitosanitarios');
-    };
+    router.push('/(main)/products' as any);
+};
 
     return (
         <ScrollView contentContainerStyle={styles.container}>

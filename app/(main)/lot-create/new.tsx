@@ -81,7 +81,10 @@ export default function NewLotScreen() {
     };
 
     const handleOpenClientSelector = () => {
-        router.push({ pathname: "/(main)/client-select" });
+        router.push({
+            pathname: "/(main)/client-select",
+            params: { returnTo: "/(main)/lot-create/new" } // <--- AGREGAMOS ESTO
+        });
     };
 
     // 4. GUARDAR (CON LA SOLUCIÓN DEL HISTORIAL)
