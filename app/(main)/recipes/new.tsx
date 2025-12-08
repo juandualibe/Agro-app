@@ -28,13 +28,17 @@ interface ProductoReceta {
     unidad: string;
 }
 
+const TIPOS_APLICACION = ['Terrestre', 'Aérea', 'Dron'];
+
 export default function NewRecipeScreen() {
-    // PARAMETROS (Acá detectamos si es Edición)
     const params = useLocalSearchParams();
-    const recipeIdToEdit = params.recipeId as string | undefined; // Si existe, editamos.
+    const recipeIdToEdit = params.recipeId as string | undefined;
 
     // === ESTADOS ===
     
+    // Tipo de Aplicación
+    const [tipoAplicacion, setTipoAplicacion] = useState('Terrestre');
+
     // Cliente y Lotes
     const [clienteId, setClienteId] = useState<string | null>(null);
     const [clienteNombre, setClienteNombre] = useState<string | null>(null);
@@ -50,7 +54,7 @@ export default function NewRecipeScreen() {
     const [diagnostico, setDiagnostico] = useState('');
     const [guardando, setGuardando] = useState(false);
     const [cargandoEdicion, setCargandoEdicion] = useState(false);
-    const [asesorNombre, setAsesorNombre] = useState(''); // Nombre real del ingeniero
+    const [asesorNombre, setAsesorNombre] = useState('');
 
     // Modal Selector
     const [modalVisible, setModalVisible] = useState(false);
@@ -59,27 +63,24 @@ export default function NewRecipeScreen() {
     const [searchQueryProd, setSearchQueryProd] = useState('');
 
 
-    // === 1. CARGA INICIAL (Ingeniero y Modo Edición) ===
+    // === 1. CARGA INICIAL ===
     useEffect(() => {
-        // A. Cargar nombre del ingeniero (perfil)
         const fetchIngeniero = async () => {
             const { data } = await supabase.from('perfiles').select('nombre_completo').limit(1).single();
             if (data?.nombre_completo) setAsesorNombre(data.nombre_completo);
         };
         fetchIngeniero();
 
-        // B. Si es EDICIÓN, cargar la receta completa
         if (recipeIdToEdit) {
             cargarDatosParaEditar(recipeIdToEdit);
         }
     }, [recipeIdToEdit]);
 
 
-    // === LÓGICA DE HIDRATACIÓN (Cargar datos viejos) ===
+    // === LÓGICA DE HIDRATACIÓN (EDITAR) ===
     const cargarDatosParaEditar = async (id: string) => {
         setCargandoEdicion(true);
         try {
-            // 1. Traer Receta + Lotes Usados + Productos Usados + Info Cliente
             const { data, error } = await supabase
                 .from('recetas')
                 .select(`
@@ -93,27 +94,24 @@ export default function NewRecipeScreen() {
 
             if (error) throw error;
 
-            // 2. Llenar Estados Básicos
+            // Llenar datos
             setDiagnostico(data.diagnostico || '');
+            setTipoAplicacion(data.tipo_aplicacion || 'Terrestre');
             setClienteId(data.cliente_id);
             setClienteNombre(data.cliente.nombre);
 
-            // 3. Cargar los lotes disponibles de ese cliente (para poder mostrar la lista completa)
             await fetchLotesDelCliente(data.cliente_id);
 
-            // 4. Marcar los lotes seleccionados
             const lotesIds = data.items_lotes.map((i: any) => i.lote_id);
             setLotesSeleccionados(lotesIds);
             
-            // Calcular total ha (sumando lo guardado)
             const totalHa = data.items_lotes.reduce((acc: number, curr: any) => acc + curr.superficie_aplicar_ha, 0);
             setTotalHectareas(totalHa);
 
-            // 5. Llenar Productos
             const prodsFormateados = data.items_productos.map((item: any) => ({
                 id: item.producto_id,
                 nombre: item.producto.nombre,
-                dosisHa: String(item.dosis_por_ha), // Convertir a string para el input
+                dosisHa: String(item.dosis_por_ha),
                 unidad: item.producto.unidad_medida
             }));
             setProductosAgregados(prodsFormateados);
@@ -127,10 +125,9 @@ export default function NewRecipeScreen() {
     };
 
 
-    // === 2. DETECTOR DE CAMBIO DE CLIENTE (Solo si viene del selector) ===
+    // === 2. DETECTOR DE CAMBIO DE CLIENTE ===
     useEffect(() => {
         if (params.clienteId && params.clienteNombre) {
-            // Si el cliente cambió respecto al que ya teníamos (importante para no borrar data al editar)
             if (clienteId !== params.clienteId) {
                 setLotesSeleccionados([]);
                 setTotalHectareas(0);
@@ -184,7 +181,6 @@ export default function NewRecipeScreen() {
         setProductosAgregados(productosAgregados.filter(p => p.id !== idProd));
     };
 
-    // === MODAL PRODUCTOS ===
     const abrirSelectorProductos = async () => {
         setModalVisible(true);
         if (listaProductosBase.length === 0) {
@@ -217,7 +213,7 @@ export default function NewRecipeScreen() {
     );
 
 
-    // === GUARDADO FINAL (INTELIGENTE: UPDATE O INSERT) ===
+    // === GUARDADO FINAL ===
     const handleGuardarReceta = async () => {
         if (!clienteId) return Alert.alert("Falta Cliente", "Seleccione un cliente.");
         if (lotesSeleccionados.length === 0) return Alert.alert("Falta Lote", "Seleccione lotes.");
@@ -230,31 +226,27 @@ export default function NewRecipeScreen() {
         try {
             let recetaId = recipeIdToEdit;
 
-            // 1. CABECERA (Crear o Actualizar)
+            // 1. CABECERA
             const datosCabecera = {
                 cliente_id: clienteId,
                 asesor_tecnico: asesorNombre || "Ingeniero Pendiente",
-                // Si es edición, NO tocamos la fecha de emisión original, si es nueva sí.
+                tipo_aplicacion: tipoAplicacion,
                 ...(recipeIdToEdit ? {} : { fecha_emision: new Date().toISOString() }),
                 diagnostico: diagnostico,
             };
 
             if (recipeIdToEdit) {
-                // UPDATE
                 const { error } = await supabase.from('recetas').update(datosCabecera).eq('id', recipeIdToEdit);
                 if (error) throw error;
-                
-                // Limpieza de relaciones viejas (Estrategia: Borrar y re-insertar es más seguro)
                 await supabase.from('receta_lotes').delete().eq('receta_id', recipeIdToEdit);
                 await supabase.from('receta_productos').delete().eq('receta_id', recipeIdToEdit);
             } else {
-                // INSERT
                 const { data, error } = await supabase.from('recetas').insert(datosCabecera).select().single();
                 if (error) throw error;
                 recetaId = data.id;
             }
 
-            // 2. INSERTAR LOTES (Nuevos o Re-insertados)
+            // 2. LOTES
             const insertLotes = lotesSeleccionados.map(lid => {
                 const loteData = lotesDisponibles.find(l => l.id === lid);
                 return {
@@ -265,7 +257,7 @@ export default function NewRecipeScreen() {
             });
             await supabase.from('receta_lotes').insert(insertLotes);
 
-            // 3. INSERTAR PRODUCTOS (Nuevos o Re-insertados)
+            // 3. PRODUCTOS
             const insertProductos = productosAgregados.map((prod, index) => {
                 const dosis = parseFloat(prod.dosisHa);
                 const total = dosis * totalHectareas;
@@ -281,17 +273,10 @@ export default function NewRecipeScreen() {
             });
             await supabase.from('receta_productos').insert(insertProductos);
 
-            // FIN
             Alert.alert(
                 recipeIdToEdit ? "✅ Receta Actualizada" : "✅ Receta Emitida", 
                 "Los cambios se guardaron correctamente.", 
-                [{ 
-                    text: "OK", 
-                    onPress: () => { 
-                        router.dismissAll(); 
-                        router.replace('/'); 
-                    } 
-                }]
+                [{ text: "OK", onPress: () => { router.dismissAll(); router.replace('/'); } }]
             );
 
         } catch (error: any) {
@@ -317,6 +302,24 @@ export default function NewRecipeScreen() {
 
             <ScrollView contentContainerStyle={styles.scroll}>
                 
+                {/* 0. TIPO DE APLICACIÓN */}
+                <View style={styles.card}>
+                    <Text style={styles.label}>Tipo de Aplicación</Text>
+                    <View style={styles.typeContainer}>
+                        {TIPOS_APLICACION.map((tipo) => (
+                            <TouchableOpacity 
+                                key={tipo}
+                                style={[styles.typeButton, tipoAplicacion === tipo && styles.typeButtonSelected]}
+                                onPress={() => setTipoAplicacion(tipo)}
+                            >
+                                <Text style={[styles.typeText, tipoAplicacion === tipo && styles.typeTextSelected]}>
+                                    {tipo}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </View>
+
                 {/* 1. CLIENTE */}
                 <View style={styles.card}>
                     <Text style={styles.label}>1. Cliente</Text>
@@ -419,7 +422,7 @@ export default function NewRecipeScreen() {
                 </View>
             </ScrollView>
 
-            {/* MODAL PRODUCTOS */}
+            {/* MODAL */}
             <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
                 <SafeAreaView style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
@@ -488,4 +491,10 @@ const styles = StyleSheet.create({
     modalItem: { paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
     modalItemName: { fontSize: 16, fontWeight: 'bold', color: '#333' },
     modalItemSub: { fontSize: 12, color: '#666' },
+
+    typeContainer: { flexDirection: 'row', gap: 10 },
+    typeButton: { flex: 1, paddingVertical: 10, paddingHorizontal: 5, borderRadius: 8, borderWidth: 1, borderColor: '#ddd', alignItems: 'center', backgroundColor: '#fff' },
+    typeButtonSelected: { backgroundColor: '#e8f5e9', borderColor: '#4caf50', borderWidth: 2 },
+    typeText: { fontSize: 14, color: '#666', fontWeight: '500' },
+    typeTextSelected: { color: '#2e7d32', fontWeight: 'bold' }
 });

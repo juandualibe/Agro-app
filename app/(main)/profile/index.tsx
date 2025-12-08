@@ -22,7 +22,7 @@ export default function ProfileScreen() {
 
     const fetchPerfil = async () => {
         try {
-            // Traemos el primer perfil que encontremos (el que creamos con SQL)
+            // Traemos el primer perfil que encontremos (Para este MVP de 1 usuario está bien)
             const { data, error } = await supabase.from('perfiles').select('*').limit(1).single();
             
             if (data) {
@@ -41,6 +41,7 @@ export default function ProfileScreen() {
     const handleSave = async () => {
         setSaving(true);
         try {
+            // Actualizamos la única fila que tenemos
             const { error } = await supabase
                 .from('perfiles')
                 .update({
@@ -48,12 +49,11 @@ export default function ProfileScreen() {
                     matricula: matricula,
                     telefono: telefono
                 })
-                .eq('id', perfilId); // Actualizamos ese ID único
+                .eq('id', perfilId);
 
             if (error) throw error;
-            Alert.alert("✅ Datos Guardados", "Tus próximas recetas saldrán con esta firma.", [
-                { text: "OK", onPress: () => router.back() }
-            ]);
+            Alert.alert("✅ Datos Actualizados", "Tus recetas saldrán con estos datos.");
+            router.back();
         } catch (error: any) {
             Alert.alert("Error", error.message);
         } finally {
@@ -61,21 +61,19 @@ export default function ProfileScreen() {
         }
     };
 
-    if (loading) return <View style={styles.center}><ActivityIndicator color="#4caf50" size="large"/></View>;
+    if (loading) return <View style={styles.center}><ActivityIndicator color="#4caf50"/></View>;
 
     return (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}><Text style={styles.backText}>‹ Volver</Text></TouchableOpacity>
-                <Text style={styles.title}>Mis Datos Profesionales</Text>
+                <Text style={styles.title}>Mis Datos</Text>
                 <View style={{width: 60}}/>
             </View>
 
             <ScrollView contentContainerStyle={styles.form}>
                 <View style={styles.card}>
-                    <Text style={styles.info}>
-                        Estos datos se usarán para firmar automáticamente las recetas y el PDF.
-                    </Text>
+                    <Text style={styles.info}>Estos datos aparecerán automáticamente en la firma de las recetas que emitas.</Text>
 
                     <Text style={styles.label}>Nombre y Apellido (Ingeniero)</Text>
                     <TextInput style={styles.input} value={nombre} onChangeText={setNombre} placeholder="Ej: Ing. Juan Dualibe"/>
@@ -88,7 +86,7 @@ export default function ProfileScreen() {
                 </View>
 
                 <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={saving}>
-                    {saving ? <ActivityIndicator color="white"/> : <Text style={styles.saveText}>GUARDAR DATOS</Text>}
+                    {saving ? <ActivityIndicator color="white"/> : <Text style={styles.saveText}>GUARDAR CAMBIOS</Text>}
                 </TouchableOpacity>
             </ScrollView>
         </KeyboardAvoidingView>
@@ -103,7 +101,7 @@ const styles = StyleSheet.create({
     backText: { color: 'white', fontSize: 16 },
     form: { padding: 20 },
     card: { backgroundColor: 'white', padding: 20, borderRadius: 12, elevation: 2, marginBottom: 20 },
-    info: { color: '#666', marginBottom: 20, fontSize: 14, textAlign: 'center', backgroundColor: '#e8f5e9', padding: 10, borderRadius: 8 },
+    info: { color: '#666', fontStyle: 'italic', marginBottom: 20, fontSize: 14, textAlign: 'center' },
     label: { fontWeight: 'bold', color: '#333', marginTop: 15, marginBottom: 5 },
     input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, fontSize: 16, backgroundColor: '#fafafa' },
     saveButton: { backgroundColor: '#1b5e20', padding: 15, borderRadius: 12, alignItems: 'center' },

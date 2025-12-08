@@ -118,9 +118,9 @@ const styles = StyleSheet.create({
     
     list: { paddingHorizontal: 15, paddingBottom: 80 },
     card: { backgroundColor: 'white', padding: 15, borderRadius: 10, marginBottom: 10, elevation: 2 },
-    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
-    name: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-    badge: { fontSize: 10, backgroundColor: '#e8f5e9', color: '#2e7d32', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, overflow: 'hidden', fontWeight: 'bold' },
+    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 5 },
+    name: { fontSize: 16, fontWeight: 'bold', color: '#333', flex: 1, marginRight: 10 },
+    badge: { fontSize: 10, backgroundColor: '#e8f5e9', color: '#2e7d32', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, overflow: 'hidden', fontWeight: 'bold', flexShrink: 0 },
     composicion: { fontSize: 14, color: '#666', fontStyle: 'italic', marginBottom: 10 },
     cardFooter: { flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 8 },
     brand: { fontSize: 12, color: '#888', fontWeight: 'bold' },
