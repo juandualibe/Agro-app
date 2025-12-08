@@ -60,53 +60,76 @@ export default function HomeScreen() {
 };
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.logo}>🌾</Text>
-                <Text style={styles.title}>AgroReceta</Text>
-                <Text style={styles.subtitle}>Recetas Fitosanitarias Profesionales</Text>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.logo}>🌾</Text>
+          <Text style={styles.title}>AGROTERRA SRL</Text>
+          <Text style={styles.subtitle}>Recetas Fitosanitarias</Text>
 
-                {loading ? (
-                    <ActivityIndicator size="small" color="#4caf50" style={{ marginTop: 10 }} />
-                ) : (
-                    <Text style={styles.dbStatus}>
-                        ✅ Conectado a Supabase ({clientes.length} clientes)
-                    </Text>
-                )}
-            </View>
+          {loading ? (
+            <ActivityIndicator
+              size="small"
+              color="#4caf50"
+              style={{ marginTop: 10 }}
+            />
+          ) : (
+            <Text style={styles.dbStatus}>
+              ✅ Conectado a Supabase ({clientes.length} clientes)
+            </Text>
+          )}
+        </View>
 
-            <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.primaryButton} onPress={handleNewRecipe}>
-                    <Text style={styles.buttonIcon}>📝</Text>
-                    <Text style={styles.primaryButtonText}>Nueva Receta</Text>
-                </TouchableOpacity>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={() => router.push('/(main)/profile')}
+          >
+            <Text style={styles.buttonIcon}>⚙️</Text>
+            <Text style={styles.secondaryButtonText}>Mis Datos</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={handleNewRecipe}
+          >
+            <Text style={styles.buttonIcon}>📝</Text>
+            <Text style={styles.primaryButtonText}>Nueva Receta</Text>
+          </TouchableOpacity>
 
-                <TouchableOpacity style={styles.secondaryButton} onPress={handleViewRecipes}>
-                    <Text style={styles.buttonIcon}>📋</Text>
-                    <Text style={styles.secondaryButtonText}>Ver Recetas</Text>
-                </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={handleViewRecipes}
+          >
+            <Text style={styles.buttonIcon}>📋</Text>
+            <Text style={styles.secondaryButtonText}>Ver Recetas</Text>
+          </TouchableOpacity>
 
-                <TouchableOpacity style={styles.secondaryButton} onPress={handleClients}>
-                    <Text style={styles.buttonIcon}>👥</Text>
-                    <Text style={styles.secondaryButtonText}>Clientes</Text>
-                </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={handleClients}
+          >
+            <Text style={styles.buttonIcon}>👥</Text>
+            <Text style={styles.secondaryButtonText}>Clientes</Text>
+          </TouchableOpacity>
 
-                <TouchableOpacity style={styles.secondaryButton} onPress={handleLots}>
-                    <Text style={styles.buttonIcon}>🗺️</Text>
-                    <Text style={styles.secondaryButtonText}>Lotes</Text>
-                </TouchableOpacity>
+          <TouchableOpacity style={styles.secondaryButton} onPress={handleLots}>
+            <Text style={styles.buttonIcon}>🗺️</Text>
+            <Text style={styles.secondaryButtonText}>Lotes</Text>
+          </TouchableOpacity>
 
-                <TouchableOpacity style={styles.secondaryButton} onPress={handleProducts}>
-                    <Text style={styles.buttonIcon}>📦</Text>
-                    <Text style={styles.secondaryButtonText}>Productos</Text>
-                </TouchableOpacity>
-            </View>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={handleProducts}
+          >
+            <Text style={styles.buttonIcon}>📦</Text>
+            <Text style={styles.secondaryButtonText}>Productos</Text>
+          </TouchableOpacity>
+        </View>
 
-            <View style={styles.footer}>
-                <Text style={styles.version}>v1.0.0 - Beta</Text>
-                <Text style={styles.author}>Desarrollado por Juan Dualibe</Text>
-            </View>
-        </ScrollView>
+        <View style={styles.footer}>
+          <Text style={styles.version}>v1.0.0 - Beta</Text>
+          <Text style={styles.author}>Desarrollado por Juan Dualibe</Text>
+        </View>
+      </ScrollView>
     );
 }
 

@@ -51,7 +51,11 @@ export default function ProductsListScreen() {
     );
 
     const renderItem = ({ item }: { item: Producto }) => (
-        <View style={styles.card}>
+        // 🚀 AHORA ES TOUCHABLE Y LLEVA AL DETALLE
+        <TouchableOpacity 
+            style={styles.card} 
+            onPress={() => router.push({ pathname: '/(main)/products/[id]', params: { id: item.id } })}
+        >
             <View style={styles.cardHeader}>
                 <Text style={styles.name}>{item.nombre}</Text>
                 <Text style={styles.badge}>{item.tipo || 'Insumo'}</Text>
@@ -61,7 +65,7 @@ export default function ProductsListScreen() {
                 <Text style={styles.brand}>{item.marca || 'Genérico'}</Text>
                 <Text style={styles.unit}>Unidad: {item.unidad_medida}</Text>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 
     return (
