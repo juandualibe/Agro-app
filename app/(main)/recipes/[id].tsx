@@ -22,7 +22,6 @@ export default function RecipeDetailScreen() {
 
     const fetchRecetaDetalle = async () => {
         try {
-            // Buscamos la receta con TODAS sus relaciones (Cliente, Lotes, Productos)
             const { data, error } = await supabase
                 .from('recetas')
                 .select(`
@@ -51,16 +50,14 @@ export default function RecipeDetailScreen() {
         }
     };
 
-    // === GENERADOR DE PDF (Aquí ocurre la magia visual) ===
+    // === GENERADOR DE PDF ===
     const generarYCompartirPDF = async () => {
         if (!receta) return;
         setGeneratingPdf(true);
 
         try {
-            // Calculamos totales para mostrar
             const totalHectareas = receta.items_lotes.reduce((acc: number, item: any) => acc + item.superficie_aplicar_ha, 0);
 
-            // Armamos las filas de LOTES
             const lotesHTML = receta.items_lotes.map((item: any) => `
                 <tr>
                     <td style="text-align: center;">${item.lote.nombre_lote}</td>
@@ -71,7 +68,6 @@ export default function RecipeDetailScreen() {
                 </tr>
             `).join('');
 
-            // Armamos las filas de PRODUCTOS
             const productosHTML = receta.items_productos.map((item: any) => `
                 <tr>
                     <td style="text-align: center;">${item.orden_mezcla}</td>
@@ -85,7 +81,6 @@ export default function RecipeDetailScreen() {
                 </tr>
             `).join('');
 
-            // EL HTML COMPLETO (Diseño idéntico a la foto)
             const htmlContent = `
             <!DOCTYPE html>
             <html>
@@ -103,102 +98,54 @@ export default function RecipeDetailScreen() {
                     .dates strong { display: block; margin-bottom: 5px; font-style: italic; }
                     .section-title { font-size: 12px; font-weight: bold; margin-top: 15px; margin-bottom: 5px; text-transform: uppercase; color: #555; }
                     .info-block { font-size: 12px; line-height: 1.6; margin-bottom: 20px; }
-                    
                     table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px; }
                     th { background-color: #f0f0f0; padding: 8px; text-align: center; font-weight: bold; border: 1px solid #ddd; }
                     td { padding: 8px; border: 1px solid #ddd; }
-                    
                     .status { float: right; color: #4caf50; font-weight: bold; border: 1px solid #4caf50; padding: 2px 8px; border-radius: 4px; font-size: 10px; }
                 </style>
             </head>
             <body>
                 <div class="header">
-                    <div class="logo">APLICAR | <span>AGRORECETA</span></div>
+                    <div class="logo">AGROTERRA | <span>S.R.L.</span></div>
                     <div style="color: #0288d1; font-weight: bold;">RECETA FITOSANITARIA</div>
                 </div>
-
                 <div class="title-box">
                     <div class="status">[${receta.estado.toUpperCase()}]</div>
                     <div class="receta-num">RECETA N° ${receta.numero_receta}</div>
-                    
                     <div class="dates">
-                        <div>
-                            <strong>FECHA DE EMISIÓN</strong>
-                            ${new Date(receta.fecha_emision).toLocaleDateString()}
-                        </div>
-                        <div>
-                            <strong>FECHA DE APLICACIÓN</strong>
-                            <span style="color: #0288d1;">${new Date().toLocaleDateString()}</span>
-                        </div>
-                        <div>
-                            <strong>FECHA DE VENCIMIENTO</strong>
-                            <span style="color: #d32f2f;">${new Date(new Date().setDate(new Date().getDate() + 7)).toLocaleDateString()}</span>
-                        </div>
+                        <div><strong>FECHA DE EMISIÓN</strong>${new Date(receta.fecha_emision).toLocaleDateString()}</div>
+                        <div><strong>FECHA DE APLICACIÓN</strong><span style="color: #0288d1;">${new Date().toLocaleDateString()}</span></div>
+                        <div><strong>FECHA DE VENCIMIENTO</strong><span style="color: #d32f2f;">${new Date(new Date().setDate(new Date().getDate() + 7)).toLocaleDateString()}</span></div>
                     </div>
-                    
                     <div style="border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; padding: 5px; font-size: 12px; text-align: center; margin-top: 10px;">
                         TIPO DE APLICACIÓN: <strong style="color: #d32f2f;">${receta.tipo_aplicacion || 'TERRESTRE'}</strong>
                     </div>
                 </div>
-
                 <div class="info-block">
                     <b>ASESOR TÉCNICO:</b> ${receta.asesor_tecnico}<br/><br/>
                     <b>EMPRESA:</b> ${receta.cliente.empresa}<br/>
                     <b>ESTABLECIMIENTO:</b> ${receta.cliente.establecimiento || '-'}<br/>
                     <b>DIAGNÓSTICO:</b> ${receta.diagnostico || '-'}
                 </div>
-
                 <div class="section-title">LOTES A TRATAR</div>
                 <table>
-                    <thead>
-                        <tr>
-                            <th>NOMBRE LOTE</th>
-                            <th>SUPERFICIE [ha]</th>
-                            <th>SUPERFICIE A APLICAR [ha]</th>
-                            <th>LATITUD</th>
-                            <th>LONGITUD</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${lotesHTML}
-                    </tbody>
+                    <thead><tr><th>NOMBRE LOTE</th><th>SUPERFICIE [ha]</th><th>SUPERFICIE A APLICAR [ha]</th><th>LATITUD</th><th>LONGITUD</th></tr></thead>
+                    <tbody>${lotesHTML}</tbody>
                 </table>
-                <div style="text-align: right; font-size: 11px; margin-top: -15px; margin-bottom: 20px;">
-                    <strong>Total a aplicar: ${totalHectareas.toFixed(2)} ha</strong>
-                </div>
-
+                <div style="text-align: right; font-size: 11px; margin-top: -15px; margin-bottom: 20px;"><strong>Total a aplicar: ${totalHectareas.toFixed(2)} ha</strong></div>
                 <div class="section-title">PRODUCTOS A SER APLICADOS</div>
                 <table>
-                    <thead>
-                        <tr>
-                            <th>ORDEN</th>
-                            <th>PRODUCTO</th>
-                            <th>DOSIS</th>
-                            <th>DOSIS TOTAL</th>
-                            <th>REMANENTE</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${productosHTML}
-                    </tbody>
+                    <thead><tr><th>ORDEN</th><th>PRODUCTO</th><th>DOSIS</th><th>DOSIS TOTAL</th><th>REMANENTE</th></tr></thead>
+                    <tbody>${productosHTML}</tbody>
                 </table>
-
                 <div class="section-title">COMENTARIOS / OBSERVACIONES</div>
-                <div style="border: 1px solid #ddd; padding: 10px; font-size: 12px; min-height: 50px;">
-                    ${receta.comentarios || 'Sin comentarios adicionales.'}
-                </div>
-                
-                <div style="margin-top: 30px; text-align: center; font-size: 10px; color: #999;">
-                    Generado automáticamente por AgroReceta App
-                </div>
+                <div style="border: 1px solid #ddd; padding: 10px; font-size: 12px; min-height: 50px;">${receta.comentarios || 'Sin comentarios adicionales.'}</div>
+                <div style="margin-top: 30px; text-align: center; font-size: 10px; color: #999;">Generado automáticamente por Agroterra App</div>
             </body>
             </html>
             `;
 
-            // Generar PDF
             const { uri } = await Print.printToFileAsync({ html: htmlContent });
-            
-            // Compartir
             await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
 
         } catch (error) {
@@ -207,6 +154,40 @@ export default function RecipeDetailScreen() {
         } finally {
             setGeneratingPdf(false);
         }
+    };
+
+    // === ACCIONES CRUD ===
+
+    const handleDeleteReceta = () => {
+        Alert.alert(
+            "Eliminar Receta",
+            "¿Estás seguro de eliminar esta receta permanentemente?",
+            [
+                { text: "Cancelar", style: "cancel" },
+                { 
+                    text: "Eliminar", 
+                    style: "destructive", 
+                    onPress: async () => {
+                        setLoading(true);
+                        const { error } = await supabase.from('recetas').delete().eq('id', id);
+                        if (error) {
+                            Alert.alert("Error", error.message);
+                            setLoading(false);
+                        } else {
+                            router.back(); 
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleEditReceta = () => {
+        // Navegamos al formulario 'new' pasando el ID para activar el modo edición
+        router.push({
+            pathname: '/(main)/recipes/new',
+            params: { recipeId: id }
+        } as any);
     };
 
 
@@ -220,7 +201,6 @@ export default function RecipeDetailScreen() {
 
     return (
         <View style={styles.container}>
-            {/* HEADER */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}><Text style={styles.backText}>‹ Volver</Text></TouchableOpacity>
                 <Text style={styles.title}>Receta #{receta.numero_receta}</Text>
@@ -259,7 +239,7 @@ export default function RecipeDetailScreen() {
                     {generatingPdf ? <ActivityIndicator color="#1b5e20"/> : <Text style={styles.pdfButtonText}>📄 COMPARTIR PDF OFICIAL</Text>}
                 </TouchableOpacity>
 
-                {/* DETALLE PRODUCTOS SIMPLE */}
+                {/* DETALLE PRODUCTOS */}
                 <Text style={styles.sectionTitle}>Productos ({receta.items_productos.length})</Text>
                 {receta.items_productos.map((item: any) => (
                     <View key={item.id} style={styles.itemRow}>
@@ -268,7 +248,7 @@ export default function RecipeDetailScreen() {
                     </View>
                 ))}
 
-                {/* DETALLE LOTES SIMPLE */}
+                {/* DETALLE LOTES */}
                 <Text style={styles.sectionTitle}>Lotes Tratados ({receta.items_lotes.length})</Text>
                 {receta.items_lotes.map((item: any) => (
                     <View key={item.id} style={styles.itemRow}>
@@ -277,6 +257,20 @@ export default function RecipeDetailScreen() {
                     </View>
                 ))}
 
+                {/* BOTONES DE GESTIÓN (EDITAR / ELIMINAR) */}
+                <View style={{marginTop: 30, borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 20}}>
+                    
+                    <TouchableOpacity style={styles.editButton} onPress={handleEditReceta}>
+                        <Text style={styles.editButtonText}>✏️ EDITAR RECETA</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteReceta}>
+                        <Text style={styles.deleteButtonText}>🗑️ ELIMINAR RECETA</Text>
+                    </TouchableOpacity>
+                
+                </View>
+                
+                <View style={{height: 40}} /> 
             </ScrollView>
         </View>
     );
@@ -304,5 +298,11 @@ const styles = StyleSheet.create({
     sectionTitle: { fontSize: 14, fontWeight: 'bold', color: '#888', marginBottom: 10, textTransform: 'uppercase' },
     itemRow: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: 'white', padding: 15, borderRadius: 8, marginBottom: 8 },
     itemName: { fontSize: 16, color: '#333', fontWeight: '500' },
-    itemValue: { fontSize: 16, color: '#2e7d32', fontWeight: 'bold' }
+    itemValue: { fontSize: 16, color: '#2e7d32', fontWeight: 'bold' },
+
+    // BOTONES NUEVOS
+    editButton: { marginBottom: 15, backgroundColor: '#e3f2fd', padding: 15, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#2196f3' },
+    editButtonText: { color: '#1976d2', fontWeight: 'bold', fontSize: 14 },
+    deleteButton: { backgroundColor: '#ffebee', padding: 15, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#ef5350' },
+    deleteButtonText: { color: '#c62828', fontWeight: 'bold', fontSize: 14 },
 });
