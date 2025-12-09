@@ -126,7 +126,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.version}>v1.0.0 - Beta</Text>
+          <Text style={styles.version}>v1.0.1 - Beta</Text>
           <Text style={styles.author}>Desarrollado por Juan Dualibe</Text>
         </View>
       </ScrollView>
